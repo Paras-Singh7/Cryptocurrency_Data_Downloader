@@ -1,23 +1,54 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
 """
 Downloads data of Crypto Currencies available on Bitmex and Binance
 """
+
+
+# In[2]:
+
+
+get_ipython().system('pip install bitmex')
+get_ipython().system('pip install python-binance')
+
+
+# In[3]:
+
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+
+# In[4]:
+
 
 # IMPORTS
 import math
 import os.path
 import time
 from datetime import timedelta, datetime
-from itertools import permutations
 from bitmex import bitmex
 from binance.client import Client
 from dateutil import parser
 from tqdm import tqdm_notebook
 import pandas as pd
 
+
+# In[5]:
+
+
 def mkdir(folder_name):
     """Creates folder where data is going to be stored"""
     if not os.path.isdir(folder_name) and folder_name != '':
         os.mkdir(folder_name)
+
+
+# In[6]:
+
 
 def minutes_of_new_data(symbol, kline_size, data, source):
     """Calculate how many minutes of data need to be downloaded."""
@@ -26,15 +57,16 @@ def minutes_of_new_data(symbol, kline_size, data, source):
     elif source == "binance":
         old = datetime.strptime('1 Jan 2017', '%d %b %Y')
     elif source == "bitmex":
-        old = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1,\
-         reverse=False).result()[0][0]['timestamp']
+        old = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1,         reverse=False).result()[0][0]['timestamp']
     if source == "binance":
-        new = pd.to_datetime(binance_client.get_klines(symbol=symbol,interval=kline_size)[-1][0]\
-        , unit='ms')
+        new = pd.to_datetime(binance_client.get_klines(symbol=symbol,interval=kline_size)[-1][0]        , unit='ms')
     if source == "bitmex":
-        new = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1,\
-         reverse=True).result()[0][0]['timestamp']
+        new = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1,         reverse=True).result()[0][0]['timestamp']
     return old, new
+
+
+# In[7]:
+
 
 def get_all_binance(symbol, kline_size, save = False):
     """Download data from Binance"""
@@ -51,8 +83,7 @@ def get_all_binance(symbol, kline_size, save = False):
     else:
         print(f'Downloading {delta_min} minutes of new data available for {symbol}, i.e.' +
         f'{available_data} instances of {kline_size} data.')
-    klines = binance_client.get_historical_klines(symbol, kline_size, oldest_point.strftime\
-    ("%d %b %Y %H:%M:%S"), newest_point.strftime("%d %b %Y %H:%M:%S"))
+    klines = binance_client.get_historical_klines(symbol, kline_size, oldest_point.strftime    ("%d %b %Y %H:%M:%S"), newest_point.strftime("%d %b %Y %H:%M:%S"))
     data = pd.DataFrame(klines, columns = ['timestamp', 'open', 'high', 'low', 'close',
      'volume', 'close_time', 'quote_av', 'trades', 'tb_base_av', 'tb_quote_av', 'ignore' ])
     data['timestamp'] = pd.to_datetime(data['timestamp'], unit='ms')
@@ -66,6 +97,11 @@ def get_all_binance(symbol, kline_size, save = False):
         data_df.to_pickle(BIN_PATH + filename)
     print('All caught up..!')
     return data_df
+
+
+# In[8]:
+
+
 
 def get_all_bitmex(symbol, kline_size, save = False):
     """Download data from Bitmex"""
@@ -83,10 +119,8 @@ def get_all_bitmex(symbol, kline_size, save = False):
         f'{available_data} instances of {kline_size} data.')
         for round_num in tqdm_notebook(range(rounds)):
             time.sleep(1)
-            new_time = (oldest_point + timedelta(minutes = round_num * BATCH_SIZE * binsizes\
-            [kline_size]))
-            data = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, \
-            count=BATCH_SIZE, startTime = new_time).result()[0]
+            new_time = (oldest_point + timedelta(minutes = round_num * BATCH_SIZE * binsizes            [kline_size]))
+            data = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size,             count=BATCH_SIZE, startTime = new_time).result()[0]
             temp_df = pd.DataFrame(data)
             data_df = pd.concat([data_df,temp_df], axis = 0)
     data_df.set_index('timestamp', inplace=True)
@@ -95,29 +129,69 @@ def get_all_bitmex(symbol, kline_size, save = False):
     print('All caught up..!')
     return data_df
 
+
+# In[9]:
+
+
 #output_path
-BIN_PATH = 'BINANCE/'
+BIN_PATH = '/content/drive/MyDrive/Crypto Data/Pickle/'
 BIT_PATH = 'BITMEX/'
 mkdir(BIN_PATH)
 mkdir(BIT_PATH)
 
+
+# In[10]:
+
+
 ### API
 #Enter your own API-key here
-BITMEX_API_KEY = 'TbO9dOvjcvk3bKqy5ld8vDV0'
- #Enter your own API-secret here
-BITMEX_API_SECRET = 'tcyeS9pLBVfbgRTXJ5mvGW-Ks82AYfEInq3FBwNhEnQAbNhI'
-#Enter your own API-key here
-BINANCE_API_KEY = 'ryFql9CN1i2KdtDSU63IqgfVr4UUrtz8Dp7Z3MZWM3VgUGkbBmwGzEbL1m05KfZM'
+BITMEX_API_KEY = ''
 #Enter your own API-secret here
-BINANCE_API_SECRET = 'jcKFz23PUlvBj3TjgN3qMVRpMkxo4GUSokVOjlqG49Qs647pAl94ru8Wpp1Ht9Kt'
+BITMEX_API_SECRET = ''
+#Enter your own API-key here
+BINANCE_API_KEY = ''
+#Enter your own API-secret here
+BINANCE_API_SECRET = ''
+
+
+# In[11]:
+
 
 ### CONSTANTS
-binsizes = {"1m": 1, "5m": 5, "1h": 60, "1d": 1440}
+binsizes = {"1m": 1, "5m": 5, "15m":15, "30m":30,"1h": 60, "1d": 1440}
 BATCH_SIZE = 750
 bitmex_client = bitmex(test=False, api_key=BITMEX_API_KEY, api_secret=BITMEX_API_SECRET)
 binance_client = Client(api_key=BINANCE_API_KEY, api_secret=BINANCE_API_SECRET)
 
-ticker = ['ETHUSDT', 'BTCUSDT', 'XRPUSDT', 'BUSDUSDT', 'USDCUSDT', 'BNBUSDT', 'ADAUSDT', 'LTCUSDT']
 
-for i in ticker:
-    df = get_all_binance(i, "1m", save = True)
+# In[12]:
+
+
+ticker = ['ETHUSDT', 'BTCUSDT', 'XRPUSDT', 'BUSDUSDT', 'USDCUSDT', 'BNBUSDT', 'ADAUSDT', 'LTCUSDT']
+size = ["5m", "15m", "30m", "1h"]
+
+
+# In[13]:
+
+
+batches = [(i,j) for i in ticker for j in size]
+
+
+# In[14]:
+
+
+batches
+
+
+# In[32]:
+
+
+for i in batches:
+    df = get_all_binance(i[0], i[1], save = True)
+
+
+# In[ ]:
+
+
+
+
